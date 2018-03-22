@@ -1,0 +1,57 @@
+#include<sys/types.h>
+#include<sys/stat.h>
+#include<fcntl.h>
+#include<stdlib.h>
+#include<unistd.h>
+#include<stdio.h>
+
+#define BUFF_SIZE 1024
+int main(int argc,char **argv)
+{
+   int from_fd,to_fd;
+   int bytes_read,bytes_write;
+   char buff[BUFF_SIZE];
+   char *ptr;
+   
+   if(argc!=3)
+   {
+     fprintf(stderr,”Usage: %s fromfile tofile\n\a”,argv[0]);
+     exit(0);
+   }
+   /*打开源文件*/
+   if((from_fd=open(argv[1],O_RDONLY))==-1)
+   {
+     fprintf(stderr,”Open: %s Error: %s\n”,argv[1],strerror(errno));
+     exit(1);
+   }
+    /*创建目的文件*/
+if((to_fd=open(argv[2],O_WRONLY|O_CREAT,S_IRUSR|S_IWUSR))==-1)
+   {
+     fprintf(stderr,”Open: %s Error: %s\n”,argv[2],strerror(errno));
+     exit(1);
+   }
+ 
+   while(bytes_read=read(from_fd,buffer,BUFF_SIZE))
+   {
+if((bytes_read==-1)&&(errno!=EINTR))break;//发生读错误，退出循环体
+else if(bytes_read>0)
+{
+ ptr=buffer;
+ while(bytes_write=write(to_fd,ptr,bytes_read))
+  {
+      if((bytes_write==-1)&&(errno!=EINTR))break;//发生写错误，退出循环体
+else if(bytes_write==bytes_read)break;
+/*若源文件和目的文件字数一样，退出循环体*/
+else if(bytes_write>0) //不一样则继续读写
+{
+ ptr+=bytes_write;
+ bytes_read-=bytes_write;
+}
+      }
+      if(bytes_write==-1)break; //写的过程中发生错误，退出
+     }
+}
+ close(from_fd);
+ close(to_fd);
+exit(0);
+}
